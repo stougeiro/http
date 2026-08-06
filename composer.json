@@ -1,0 +1,57 @@
+{
+    "name": "stougeiro/http",
+    "description": "Lightweight, expressive and practical HTTP abstractions for PHP, inspired by real-world request/response workflows and guided by PSR principles.",
+    "type": "library",
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "stougeiro",
+            "email": "sidneytougeiro@gmail.com"
+        }
+    ],
+    "keywords": [
+        "http",
+        "http-server",
+        "request",
+        "response",
+        "middleware",
+        "pipeline",
+        "express-style",
+        "psr-guided",
+        "uri",
+        "uploadedfile",
+        "php",
+        "framework-agnostic"
+    ],
+    "support": {
+        "issues": "https://github.com/stougeiro/http/issues",
+        "source": "https://github.com/stougeiro/http"
+    },
+    "funding": [
+        {
+            "type": "buymeacoffee",
+            "url": "https://www.buymeacoffee.com/stougeiro"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "STDW\\Http\\": "src/"
+        },
+        "files": [
+            "src/functions.php"
+        ]
+    },
+    "require": {
+        "php": ">=8.1"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.2"
+    }
+}

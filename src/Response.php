@@ -114,17 +114,20 @@
         {
             /** Status
              */
+
             http_response_code($this->status);
 
             /** Headers
              */
+
             foreach ($this->headers as $name => $value) {
                 header($this->canonicalizeHeaderName($name) . ': ' . $value);
             }
 
+            /** Cookies 
+             */
+
             /**
-             * Cookies 
-             * 
              * @var array{
              *     name: string,
              *     value: string,
@@ -144,6 +147,7 @@
 
             /** Body
              */
+
             if (
                    $this->statusHasNoBody($this->status)
                 || is_null($this->body)

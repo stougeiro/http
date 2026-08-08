@@ -10,24 +10,29 @@
 
     class RedirectResponse extends Response
     {
+        /** @var string
+         */
+        protected string $location;
+
+
         /**
          * @param string $location
-         * @param int $status 
-         * @param array<string, string> $headers 
-         * @param null|string $body 
-         * @return void 
+         * @param int $status
+         * @param array<string, string> $headers
+         * @param null|string $body
+         * @return void
          */
         public function __construct(string $location, int $status = 302, array $headers = [], ?string $body = '')
         {
-            $headers['Location'] = $location;
+            $this->location = $location;
 
             parent::__construct($status, $headers, $body);
         }
 
 
         /**
-         * @param int $code 
-         * @return ResponseInterface 
+         * @param int $code
+         * @return ResponseInterface
          * @throws InvalidArgumentException
          */
         public function withStatus(int $code): ResponseInterface
@@ -42,24 +47,9 @@
         }
 
         /**
-         * @param string $name 
-         * @return ResponseInterface 
-         * @throws InvalidArgumentException
-         */
-        public function withoutHeader(string $name): ResponseInterface
-        {
-            $key = $this->normalizeHeaderName($name);
-
-            if ($key === 'location') {
-                throw new InvalidArgumentException("Cannot remove Location header from RedirectResponse");
-            }
-
-            return parent::withoutHeader($name);
-        }
-
-        /**
-         * @param null|string $body 
-         * @return ResponseInterface 
+         * @param null|string $body
+         * @return ResponseInterface
+         * @throws InvalidArgumentException 
          */
         public function withBody(?string $body): ResponseInterface
         {
@@ -68,5 +58,17 @@
             }
 
             return $this;
+        }
+
+        /** @return void
+         */
+        public function send(): void
+        {
+            /** Send
+             */
+
+            $this->withHeader('Location', $this->location);
+
+            parent::send();
         }
     }

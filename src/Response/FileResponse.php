@@ -17,10 +17,10 @@
 
         /**
          * @param string $filePath
-         * @param int $status 
-         * @param array<string, string> $headers 
-         * @param null|string $body 
-         * @return void 
+         * @param int $status
+         * @param array<string, string> $headers
+         * @param null|string $body
+         * @return void
          */
         public function __construct(string $filePath, int $status = 200, array $headers = [], ?string $body = '')
         {
@@ -31,8 +31,8 @@
 
 
         /**
-         * @param int $code 
-         * @return ResponseInterface 
+         * @param int $code
+         * @return ResponseInterface
          * @throws InvalidArgumentException
          */
         public function withStatus(int $code): ResponseInterface
@@ -47,8 +47,9 @@
         }
 
         /**
-         * @param null|string $body 
-         * @return ResponseInterface 
+         * @param null|string $body
+         * @return ResponseInterface
+         * @throws InvalidArgumentException 
          */
         public function withBody(?string $body): ResponseInterface
         {
@@ -59,7 +60,7 @@
             return $this;
         }
 
-        /** @return void 
+        /** @return void
          */
         public function send(): void
         {

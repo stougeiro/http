@@ -11,8 +11,8 @@
     class EmptyResponse extends Response
     {
         /**
-         * @param int $code 
-         * @return ResponseInterface 
+         * @param int $code
+         * @return ResponseInterface
          * @throws InvalidArgumentException
          */
         public function withStatus(int $code): ResponseInterface
@@ -27,8 +27,9 @@
         }
 
         /**
-         * @param null|string $body 
-         * @return ResponseInterface 
+         * @param null|string $body
+         * @return ResponseInterface
+         * @throws InvalidArgumentException
          */
         public function withBody(?string $body): ResponseInterface
         {
@@ -39,7 +40,7 @@
             return $this;
         }
 
-        /** @return void 
+        /** @return void
          */
         public function send(): void
         {

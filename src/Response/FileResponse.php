@@ -64,7 +64,7 @@
          */
         public function send(): void
         {
-            /** Validation
+            /** Send
              */
 
             if ( ! is_file($this->filePath)) {
@@ -90,9 +90,6 @@
                     ->withHeader('Pragma', 'public')
                     ->withHeader('Content-Length', $fileSize);
             }
-
-            /** Send
-             */
 
             parent::send();
 

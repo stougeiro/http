@@ -44,16 +44,13 @@
          */
         public function send(): void
         {
-            /** Headers
+            /** Send
              */
 
             $this->withoutHeader('content-type');
             $this->withoutHeader('content-length');
             $this->withoutHeader('transfer-encoding');
             $this->withoutHeader('content-encoding');
-
-            /** Send
-             */
 
             parent::send();
         }

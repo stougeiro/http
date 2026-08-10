@@ -68,6 +68,50 @@
         /**
          * @param string $name 
          * @param string $value 
+         * @param array{
+         *     expires?: int,
+         *     path?: string,
+         *     domain?: string,
+         *     secure?: bool,
+         *     httponly?: bool,
+         *     samesite?: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
+         * } $options 
+         * @return ResponseInterface 
+         */
+        public function withCookie(string $name, string $value, array $options = []): ResponseInterface
+        {
+            $this->cookies[$name] = [
+                'name' => $name,
+                'value' => $value,
+                'options' => $this->normalizeCookieOptions($options),
+            ];
+
+            return $this;
+        }
+
+        /**
+         * @param string $name
+         * @return ResponseInterface
+         */
+        public function withoutCookie(string $name): ResponseInterface
+        {
+            unset($this->cookies[$name]);
+
+            return $this;
+        }
+
+        /** @return ResponseInterface
+         */
+        public function clearCookies(): ResponseInterface
+        {
+            $this->cookies = [];
+
+            return $this;
+        }
+
+        /**
+         * @param string $name 
+         * @param string $value 
          * @return ResponseInterface 
          */
         public function withHeader(string $name, string $value): ResponseInterface
@@ -170,6 +214,29 @@
                 ($code >= 100 && $code < 200)
                 || $code === 204
                 || $code === 304
+            );
+        }
+
+        /**
+         * @param array{
+         *     name: string,
+         *     value: string,
+         *     options: array{
+         *         expires: int,
+         *         path: string,
+         *         domain: string,
+         *         secure: bool,
+         *         httponly: bool,
+         *         samesite: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
+         *     }
+         * } $cookie
+         */
+        protected function sendCookie(array $cookie): void
+        {
+            setcookie(
+                $cookie['name'],
+                $cookie['value'],
+                $cookie['options']
             );
         }
     }

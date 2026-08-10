@@ -61,50 +61,6 @@
             return $this->cookies[$name] ?? null;
         }
 
-        /**
-         * @param string $name 
-         * @param string $value 
-         * @param array{
-         *     expires?: int,
-         *     path?: string,
-         *     domain?: string,
-         *     secure?: bool,
-         *     httponly?: bool,
-         *     samesite?: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
-         * } $options 
-         * @return ResponseInterface 
-         */
-        public function withCookie(string $name, string $value, array $options = []): ResponseInterface
-        {
-            $this->cookies[$name] = [
-                'name' => $name,
-                'value' => $value,
-                'options' => $this->normalizeCookieOptions($options),
-            ];
-
-            return $this;
-        }
-
-        /**
-         * @param string $name
-         * @return ResponseInterface
-         */
-        public function withoutCookie(string $name): ResponseInterface
-        {
-            unset($this->cookies[$name]);
-
-            return $this;
-        }
-
-        /** @return ResponseInterface
-         */
-        public function clearCookies(): ResponseInterface
-        {
-            $this->cookies = [];
-
-            return $this;
-        }
-
 
         /**
          * Normalizes cookie options ensuring a complete shape.
@@ -136,28 +92,5 @@
                 'httponly' => $options['httponly'] ?? false,
                 'samesite' => $options['samesite'] ?? 'strict',
             ];
-        }
-
-        /**
-         * @param array{
-         *     name: string,
-         *     value: string,
-         *     options: array{
-         *         expires: int,
-         *         path: string,
-         *         domain: string,
-         *         secure: bool,
-         *         httponly: bool,
-         *         samesite: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
-         *     }
-         * } $cookie
-         */
-        protected function sendCookie(array $cookie): void
-        {
-            setcookie(
-                $cookie['name'],
-                $cookie['value'],
-                $cookie['options']
-            );
         }
     }

@@ -6,63 +6,6 @@
     trait CookiesTrait
     {
         /**
-         * @var array<string, array{
-         *     name: string,
-         *     value: string,
-         *     options: array{
-         *         expires?: int,
-         *         path?: string,
-         *         domain?: string,
-         *         secure?: bool,
-         *         httponly?: bool,
-         *         samesite?: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
-         *     }
-         * }>
-         */
-        protected array $cookies = [];
-
-
-        /**
-         * @return array<string, array{
-         *     name: string,
-         *     value: string,
-         *     options: array{
-         *         expires?: int,
-         *         path?: string,
-         *         domain?: string,
-         *         secure?: bool,
-         *         httponly?: bool,
-         *         samesite?: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
-         *     }
-         * }>
-         */
-        public function getCookies(): array
-        {
-            return $this->cookies;
-        }
-
-        /**
-         * @param string $name
-         * @return null|array{
-         *     name: string,
-         *     value: string,
-         *     options: array{
-         *         expires?: int,
-         *         path?: string,
-         *         domain?: string,
-         *         secure?: bool,
-         *         httponly?: bool,
-         *         samesite?: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
-         *     }
-         * }
-         */
-        public function getCookie(string $name): ?array
-        {
-            return $this->cookies[$name] ?? null;
-        }
-
-
-        /**
          * Normalizes cookie options ensuring a complete shape.
          *
          * @param array{

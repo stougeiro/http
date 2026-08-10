@@ -19,6 +19,26 @@
          */
         protected int $status = 200;
 
+        /**
+         * @var array<string, array{
+         *     name: string,
+         *     value: string,
+         *     options: array{
+         *         expires?: int,
+         *         path?: string,
+         *         domain?: string,
+         *         secure?: bool,
+         *         httponly?: bool,
+         *         samesite?: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
+         *     }
+         * }>
+         */
+        protected array $cookies = [];
+
+        /** @var array<string, string>
+         */
+        protected array $headers = [];
+
         /** @var null|string
          */
         protected ?string $body = null;
@@ -66,6 +86,45 @@
         }
 
         /**
+         * @return array<string, array{
+         *     name: string,
+         *     value: string,
+         *     options: array{
+         *         expires?: int,
+         *         path?: string,
+         *         domain?: string,
+         *         secure?: bool,
+         *         httponly?: bool,
+         *         samesite?: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
+         *     }
+         * }>
+         */
+        public function getCookies(): array
+        {
+            return $this->cookies;
+        }
+
+        /**
+         * @param string $name
+         * @return null|array{
+         *     name: string,
+         *     value: string,
+         *     options: array{
+         *         expires?: int,
+         *         path?: string,
+         *         domain?: string,
+         *         secure?: bool,
+         *         httponly?: bool,
+         *         samesite?: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
+         *     }
+         * }
+         */
+        public function getCookie(string $name): ?array
+        {
+            return $this->cookies[$name] ?? null;
+        }
+
+        /**
          * @param string $name 
          * @param string $value 
          * @param array{
@@ -107,6 +166,31 @@
             $this->cookies = [];
 
             return $this;
+        }
+
+        /** @return array<string, string>
+         */
+        public function getHeaders(): array
+        {
+            return $this->headers;
+        }
+
+        /**
+         * @param string $name 
+         * @return null|string 
+         */
+        public function getHeader(string $name): ?string
+        {
+            return $this->headers[$this->normalizeHeaderName($name)] ?? null;
+        }
+
+        /**
+         * @param string $name 
+         * @return bool 
+         */
+        public function hasHeader(string $name): bool
+        {
+            return isset($this->headers[$this->normalizeHeaderName($name)]);
         }
 
         /**

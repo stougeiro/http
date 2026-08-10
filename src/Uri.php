@@ -49,10 +49,10 @@
          */
         public function __toString(): string
         {
-            $scheme = $this->scheme ? $this->scheme . '://' : '';
+            $scheme = $this->scheme ? $this->scheme .'://' : '';
             $authority = $this->getAuthority();
-            $query = $this->query ? '?' . http_build_query($this->query) : '';
-            $fragment = $this->fragment ? '#' . $this->fragment : '';
+            $query = $this->query ? '?'. http_build_query($this->query) : '';
+            $fragment = $this->fragment ? '#'. $this->fragment : '';
 
             return $scheme . $authority . $this->path . $query . $fragment;
         }

@@ -4,7 +4,7 @@
 
     use InvalidArgumentException;
 
-    use STDW\Http\Spec\ResponseInterface;
+    use STDW\Contract\Http\ResponseInterface;
     use STDW\Http\Spec\CookiesTrait;
     use STDW\Http\Spec\HeadersTrait;
 

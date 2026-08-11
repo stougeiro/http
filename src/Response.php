@@ -19,6 +19,10 @@
          */
         protected int $status = 200;
 
+        /** @var array<string, string>
+         */
+        protected array $headers = [];
+
         /**
          * @var array<string, array{
          *     name: string,
@@ -34,10 +38,6 @@
          * }>
          */
         protected array $cookies = [];
-
-        /** @var array<string, string>
-         */
-        protected array $headers = [];
 
         /** @var null|string
          */
@@ -81,6 +81,56 @@
             }
 
             $this->status = $code;
+
+            return $this;
+        }
+
+        /** @return array<string, string>
+         */
+        public function getHeaders(): array
+        {
+            return $this->headers;
+        }
+
+        /**
+         * @param string $name 
+         * @return null|string 
+         */
+        public function getHeader(string $name): ?string
+        {
+            return $this->headers[$this->normalizeHeaderName($name)] ?? null;
+        }
+
+        /**
+         * @param string $name 
+         * @return bool 
+         */
+        public function hasHeader(string $name): bool
+        {
+            return isset($this->headers[$this->normalizeHeaderName($name)]);
+        }
+
+        /**
+         * @param string $name 
+         * @param string $value 
+         * @return ResponseInterface 
+         */
+        public function withHeader(string $name, string $value): ResponseInterface
+        {
+            $key = $this->normalizeHeaderName($name);
+            $this->headers[$key] = $value;
+
+            return $this;
+        }
+
+        /**
+         * @param string $name 
+         * @return ResponseInterface 
+         */
+        public function withoutHeader(string $name): ResponseInterface
+        {
+            $key = $this->normalizeHeaderName($name);
+            unset($this->headers[$key]);
 
             return $this;
         }
@@ -164,56 +214,6 @@
         public function clearCookies(): ResponseInterface
         {
             $this->cookies = [];
-
-            return $this;
-        }
-
-        /** @return array<string, string>
-         */
-        public function getHeaders(): array
-        {
-            return $this->headers;
-        }
-
-        /**
-         * @param string $name 
-         * @return null|string 
-         */
-        public function getHeader(string $name): ?string
-        {
-            return $this->headers[$this->normalizeHeaderName($name)] ?? null;
-        }
-
-        /**
-         * @param string $name 
-         * @return bool 
-         */
-        public function hasHeader(string $name): bool
-        {
-            return isset($this->headers[$this->normalizeHeaderName($name)]);
-        }
-
-        /**
-         * @param string $name 
-         * @param string $value 
-         * @return ResponseInterface 
-         */
-        public function withHeader(string $name, string $value): ResponseInterface
-        {
-            $key = $this->normalizeHeaderName($name);
-            $this->headers[$key] = $value;
-
-            return $this;
-        }
-
-        /**
-         * @param string $name 
-         * @return ResponseInterface 
-         */
-        public function withoutHeader(string $name): ResponseInterface
-        {
-            $key = $this->normalizeHeaderName($name);
-            unset($this->headers[$key]);
 
             return $this;
         }

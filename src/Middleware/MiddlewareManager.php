@@ -44,34 +44,24 @@
          */
         public function handle(RequestInterface $request, ResponseInterface $response): ResponseInterface
         {
-            return $this->dispatch($request, $response, 0);
-        }
+            $index = 0;
+            $middlewares = $this->middlewares;
+            $finalHandler = $this->finalHandler;
 
+            $next = function (RequestInterface $req, ResponseInterface $res) use (&$index, $middlewares, $finalHandler, &$next): ResponseInterface {
+                if ( ! isset($middlewares[$index])) {
+                    if ( ! is_null($finalHandler)) {
+                        return $finalHandler->process($req, $res, static fn($q, $s) => $s);
+                    }
 
-        /**
-         * @param RequestInterface $request
-         * @param ResponseInterface $response
-         * @param int $index
-         * @return ResponseInterface
-         */
-        protected function dispatch(RequestInterface $request, ResponseInterface $response, int $index): ResponseInterface
-        {
-            if ( ! isset($this->middlewares[$index])) {
-                if ($this->finalHandler !== null) {
-                    return $this->finalHandler->process($request, $response, static fn($req, $res) => $res);
+                    return $res;
                 }
 
-                return $response;
-            }
+                $middleware = $middlewares[$index++];
 
-            $middleware = $this->middlewares[$index];
+                return $middleware->process($req, $res, $next);
+            };
 
-            return $middleware->process(
-                $request,
-                $response,
-                function (RequestInterface $req, ResponseInterface $res) use ($index): ResponseInterface {
-                    return $this->dispatch($req, $res, $index + 1);
-                }
-            );
+            return $next($request, $response);
         }
     }

@@ -27,7 +27,7 @@
          */
         protected ?array $headers = null;
 
-        /** @var null|array<string, array<string, mixed>>
+        /** @var null|array<string, array<string, string>>
          */
         protected ?array $cookies = null;
 
@@ -91,7 +91,7 @@
             return isset($headers[$this->normalizeHeaderName($name)]);
         }
 
-        /** @return array<string, array<string, mixed>> 
+        /** @return array<string, array<string, string>>
          */
         public function getCookies(): array
         {
@@ -267,11 +267,33 @@
             return $headers;
         }
 
-        /** @return array<string, array<string, mixed>>
+        /** @return array<string, array<string, string>>
          */
         protected function parseCookies(): array
         {
-            return [];
+            $raw = $_SERVER['HTTP_COOKIE'] ?? '';
+
+            if ( ! is_string($raw) || empty($raw)) {
+                return [];
+            }
+
+            $cookies = [];
+            $parts = array_map('trim', explode(';', $raw));
+
+            foreach ($parts as $part) {
+                if ( ! str_contains($part, '=')) {
+                    continue;
+                }
+
+                [$name, $value] = explode('=', $part, 2);
+
+                $cookies[$name] = [
+                    'name'  => $name,
+                    'value' => $value,
+                ];
+            }
+
+            return $cookies;
         }
 
         /** @return array<string, mixed>

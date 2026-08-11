@@ -270,7 +270,11 @@
              * } $cookie
              */
             foreach ($this->cookies as $cookie) {
-                $this->sendCookie($cookie);
+                setcookie(
+                    $cookie['name'],
+                    $cookie['value'],
+                    $cookie['options']
+                );
             }
 
             /** Body
@@ -298,29 +302,6 @@
                 ($code >= 100 && $code < 200)
                 || $code === 204
                 || $code === 304
-            );
-        }
-
-        /**
-         * @param array{
-         *     name: string,
-         *     value: string,
-         *     options: array{
-         *         expires: int,
-         *         path: string,
-         *         domain: string,
-         *         secure: bool,
-         *         httponly: bool,
-         *         samesite: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
-         *     }
-         * } $cookie
-         */
-        protected function sendCookie(array $cookie): void
-        {
-            setcookie(
-                $cookie['name'],
-                $cookie['value'],
-                $cookie['options']
             );
         }
     }

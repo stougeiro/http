@@ -65,7 +65,16 @@
          */
         public function send(): void
         {
-            /** Send
+            while (ob_get_level() > 0) {
+                ob_end_flush();
+            }
+
+            /** Status
+             */
+
+            http_response_code($this->status);
+
+            /** Headers
              */
 
             $this
@@ -73,7 +82,9 @@
                 ->withHeader('Cache-Control', 'no-cache')
                 ->withHeader('Connection', 'keep-alive');
 
-            parent::send();
+            foreach ($this->headers as $name => $value) {
+                header($this->canonicalizeHeaderName($name) .': '. $value);
+            }
 
             /** Event
              */
@@ -95,38 +106,46 @@
 
                 if ( ! isset($event['data'])) {
                     error_log("SseResponse event ignored: missing 'data' field");
+
                     continue;
                 }
 
 
+                // event
                 if (isset($event['event'])) {
-                    echo "event: {$event['event']}\n";
+                    echo "event: ", $event['event'], "\n";
                 }
 
+                // id
                 if (isset($event['id'])) {
-                    echo "id: {$event['id']}\n";
+                    echo "id: ", $event['id'], "\n";
                 }
 
+                // retry
                 if (isset($event['retry'])) {
-                    echo "retry: {$event['retry']}\n";
+                    echo "retry: ", $event['retry'], "\n";
                 }
 
-                if ( ! is_array($event['data'])) {
-                    $event['data'] = [$event['data']];
-                }
+                // data
+                $dataLines = is_array($event['data'])
+                    ? $event['data']
+                    : [$event['data']];
 
-                foreach ($event['data'] as $line) {
-                    echo "data: {$line}\n";
+                foreach ($dataLines as $line) {
+                    echo "data: ", $line, "\n";
                 }
 
                 echo "\n";
 
+                flush();
 
-                if (ob_get_level() > 0) {
-                    ob_flush();
+                if (function_exists('fastcgi_finish_request')) {
+                    fastcgi_finish_request();
                 }
 
-                flush();
+                if (connection_aborted()) {
+                    break;
+                }
             }
         }
     }

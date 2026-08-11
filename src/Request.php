@@ -129,7 +129,7 @@
                 return $default;
             }
 
-            return $this->secure($params[$key]);
+            return $params[$key];
         }
 
         /** @return mixed 
@@ -154,7 +154,7 @@
                 return $default;
             }
 
-            return $this->secure($body[$key]);
+            return $body[$key];
         }
 
         /** @return array<string, UploadedFileInterface|array<int, UploadedFileInterface>>
@@ -289,7 +289,7 @@
 
                 $cookies[$name] = [
                     'name'  => $name,
-                    'value' => $value,
+                    'value' => $this->secureString($value),
                 ];
             }
 
@@ -300,7 +300,7 @@
          */
         protected function parseParams(): array
         {
-            return $_GET;
+            return $this->secureArray($_GET);
         }
 
         /** @return array<string, mixed>
@@ -317,10 +317,10 @@
                     return ['__ERROR__' => json_last_error_msg()];
                 }
 
-                return is_array($json) ? $json : [];
+                return is_array($json) ? $this->secureArray($json) : [];
             }
 
-            return $_POST;
+            return $this->secureArray($_POST);
         }
 
         /** @return array<string, UploadedFileInterface|array<int, UploadedFileInterface>>
@@ -398,28 +398,43 @@
         }
 
         /**
-         * @param mixed $value 
-         * @return mixed 
+         * @param array<mixed> $data
+         * @return array<string, mixed>
          */
-        protected function secure(mixed $value): mixed
+        protected function secureArray(array $data): array
         {
-            if (is_array($value)) {
-                foreach ($value as $k => $v) {
-                    $value[$k] = $this->secure($v);
+            foreach ($data as $k => $v) {
+                if (is_string($v)) {
+                    $data[$k] = $this->secureString($v);
+
+                    continue;
                 }
 
-                return $value;
+                if (is_array($v)) {
+                    $data[$k] = $this->secureArray($v);
+
+                    continue;
+                }
+
+                $data[$k] = $v;
             }
 
-            if (is_string($value)) {
-                $value = trim($value);
-                $value = filter_var(
-                    $value,
-                    FILTER_UNSAFE_RAW,
-                    FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH
-                );
-            }
+            return $data;
+        }
 
-            return $value;
+        /**
+         * @param string $value 
+         * @return string 
+         */
+        protected function secureString(string $value): string
+        {
+            $value = trim($value);
+            $filtered = filter_var(
+                $value,
+                FILTER_UNSAFE_RAW,
+                FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH
+            );
+
+            return is_string($filtered) ? $filtered : '';
         }
     }

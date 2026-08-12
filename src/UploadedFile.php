@@ -192,11 +192,15 @@
                 throw new RuntimeException("Cannot move uploaded file: " . $this->getErrorMessage());
             }
 
-            $target = $path;
+            $isDir = $this->doIsDir($path);
 
-            if (is_dir($path)) {
-                $target = rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $this->name;
+            if ( ! $isDir) {
+                $this->name = basename($path);
             }
+
+            $target = $isDir
+                ? rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $this->name
+                : $path;
 
             $from = $this->tmpName ?? $this->path;
 
@@ -205,8 +209,8 @@
             }
 
             $success = is_null($this->tmpName)
-                ? rename($from, $target)
-                : move_uploaded_file($from, $target);
+                ? $this->doRename($from, $target)
+                : $this->doMoveUploadedFile($from, $target);
 
             if ( ! $success) {
                 throw new RuntimeException("Failed to move uploaded file.");
@@ -214,5 +218,35 @@
 
             $this->tmpName = null;
             $this->path = $target;
+        }
+
+        /**
+         * @param string $filename 
+         * @return bool 
+         */
+        protected function doIsDir(string $filename): bool
+        {
+            return is_dir($filename);
+        }
+
+        /**
+         * @param string $from 
+         * @param string $to 
+         * @param null|resource $context 
+         * @return bool 
+         */
+        protected function doRename(string $from, string $to, $context = null): bool
+        {
+            return rename($from, $to, $context);
+        }
+
+        /**
+         * @param string $from 
+         * @param string $to 
+         * @return bool 
+         */
+        protected function doMoveUploadedFile(string $from, string $to): bool
+        {
+            return move_uploaded_file($from, $to);
         }
     }

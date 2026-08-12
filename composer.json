@@ -38,10 +38,7 @@
     "autoload": {
         "psr-4": {
             "STDW\\Http\\": "src/"
-        },
-        "files": [
-            "src/functions.php"
-        ]
+        }
     },
     "require": {
         "php": ">=8.1",

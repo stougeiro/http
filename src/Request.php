@@ -31,7 +31,7 @@
          */
         protected ?array $cookies = null;
 
-        /** @var null|array<string, mixed>
+        /** @var null|array<int|string, mixed>
          */
         protected ?array $params = null;
 
@@ -109,7 +109,7 @@
             return $cookies[$name] ?? null;
         }
 
-        /** @return array<string, mixed> 
+        /** @return array<int|string, mixed> 
          */
         public function getParams(): array
         {
@@ -117,11 +117,11 @@
         }
 
         /**
-         * @param string $key 
+         * @param int|string $key 
          * @param mixed $default 
          * @return mixed 
          */
-        public function param(string $key, mixed $default = null): mixed
+        public function param(int|string $key, mixed $default = null): mixed
         {
             $params = $this->getParams();
 
@@ -140,13 +140,13 @@
         }
 
         /**
-         * @param string $key 
+         * @param int|string $key 
          * @param mixed $default 
          * @return mixed 
          */
-        public function input(string $key, mixed $default = null): mixed
+        public function input(int|string $key, mixed $default = null): mixed
         {
-            /** @var null|array<string, mixed> $body
+            /** @var null|array<int|string, mixed> $body
              */
             $body = $this->getBody();
 
@@ -258,10 +258,14 @@
                 }
 
                 if (str_starts_with($key, 'HTTP_')) {
-                    $headers[$this->normalizeHeaderName(substr($key, 5))] = $value;
+                    $name = $this->normalizeHeaderName(substr($key, 5));
                 } elseif (in_array($key, $special, true)) {
-                    $headers[$this->normalizeHeaderName($key)] = $value;
+                    $name = $this->normalizeHeaderName($key);
+                } else {
+                    continue;
                 }
+
+                $headers[$name] = $this->secureString($value);
             }
 
             return $headers;
@@ -288,7 +292,7 @@
                 [$name, $value] = explode('=', $part, 2);
 
                 $cookies[$name] = [
-                    'name'  => $name,
+                    'name'  => $this->secureString($name),
                     'value' => $this->secureString($value),
                 ];
             }
@@ -296,21 +300,21 @@
             return $cookies;
         }
 
-        /** @return array<string, mixed>
+        /** @return array<int|string, mixed>
          */
         protected function parseParams(): array
         {
             return $this->secureArray($_GET);
         }
 
-        /** @return array<string, mixed>
+        /** @return array<int|string, mixed>
          */
         protected function parseBody(): array
         {
             $contentType = $this->getHeader('CONTENT_TYPE') ?? '';
 
             if (str_contains($contentType, 'application/json')) {
-                $raw = file_get_contents('php://input') ?: '';
+                $raw = $this->doGetPhpInputContent();
                 $json = json_decode($raw, true);
 
                 if (json_last_error() !== JSON_ERROR_NONE) {
@@ -364,7 +368,7 @@
                         }
 
                         $files[$field][] = new UploadedFile(
-                            $name[$i],
+                            $this->secureFilename($name[$i]),
                             $type[$i],
                             $tmpName[$i],
                             $size[$i],
@@ -386,7 +390,7 @@
                 }
 
                 $files[$field] = new UploadedFile(
-                    $name,
+                    $this->secureFilename($name),
                     $type,
                     $tmpName,
                     $size,
@@ -399,27 +403,31 @@
 
         /**
          * @param array<mixed> $data
-         * @return array<string, mixed>
+         * @return array<int|string, mixed>
          */
         protected function secureArray(array $data): array
         {
-            foreach ($data as $k => $v) {
-                if (is_string($v)) {
-                    $data[$k] = $this->secureString($v);
+            $clean = [];
 
+            foreach ($data as $key => $value) {
+                $safeKey = is_string($key)
+                    ? $this->secureString($key)
+                    : $key;
+
+                if (is_string($value)) {
+                    $clean[$safeKey] = $this->secureString($value);
                     continue;
                 }
 
-                if (is_array($v)) {
-                    $data[$k] = $this->secureArray($v);
-
+                if (is_array($value)) {
+                    $clean[$safeKey] = $this->secureArray($value);
                     continue;
                 }
 
-                $data[$k] = $v;
+                $clean[$safeKey] = $value;
             }
 
-            return $data;
+            return $clean;
         }
 
         /**
@@ -428,13 +436,58 @@
          */
         protected function secureString(string $value): string
         {
-            $value = trim($value);
-            $filtered = filter_var(
-                $value,
-                FILTER_UNSAFE_RAW,
-                FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH
-            );
+            $clean = trim($value);
 
-            return is_string($filtered) ? $filtered : '';
+            $clean = preg_replace(
+                '/[\x00-\x1F\x7F\x{200B}-\x{200D}\x{FEFF}]/u',
+                '',
+                $clean
+            ) ?? '';
+
+            $clean = preg_replace(
+                '/[\x{202A}-\x{202E}\x{2066}-\x{2069}]/u',
+                '',
+                $clean
+            ) ?? '';
+
+            return htmlspecialchars(
+                $clean,
+                ENT_QUOTES | ENT_SUBSTITUTE,
+                'UTF-8'
+            );
+        }
+
+        /**
+         * @param string $name 
+         * @return string 
+         */
+        protected function secureFilename(string $name): string
+        {
+            $clean = $this->secureString($name);
+            $clean = preg_replace('/[\/\\\\:\*\?"<>\|]/', '', $clean) ?? '';
+            $clean = str_replace(['..', './', '.\\'], '', $clean);
+            $clean = trim($clean, " \t\n\r\0\x0B.");
+
+            $reserved = [
+                'CON','PRN','AUX','NUL',
+                'COM1','COM2','COM3','COM4','COM5','COM6','COM7','COM8','COM9',
+                'LPT1','LPT2','LPT3','LPT4','LPT5','LPT6','LPT7','LPT8','LPT9', ];
+
+            if (in_array(strtoupper($clean), $reserved, true)) {
+                $clean = '_' . $clean;
+            }
+
+            if ($clean === '') {
+                $clean = 'file';
+            }
+
+            return $clean;
+        }
+
+        /** @return string 
+         */
+        protected function doGetPhpInputContent(): string
+        {
+            return file_get_contents('php://input') ?: '';
         }
     }

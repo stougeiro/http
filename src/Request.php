@@ -5,14 +5,12 @@
     use STDW\Contract\Http\RequestInterface;
     use STDW\Contract\Http\UriInterface;
     use STDW\Contract\Http\UploadedFileInterface;
-    use STDW\Http\Spec\CookiesTrait;
     use STDW\Http\Spec\HeadersTrait;
 
 
     class Request implements RequestInterface
     {
         use HeadersTrait;
-        use CookiesTrait;
 
 
         /** @var null|string
@@ -250,22 +248,25 @@
         protected function parseHeaders(): array
         {
             $headers = [];
-            $special = ['CONTENT_TYPE', 'CONTENT_LENGTH', 'CONTENT_MD5'];
+            $special = [
+                'CONTENT_TYPE' => true,
+                'CONTENT_LENGTH' => true,
+                'CONTENT_MD5' => true,
+            ];
 
             foreach ($_SERVER as $key => $value) {
                 if ( ! is_string($value)) {
                     continue;
                 }
 
-                if (str_starts_with($key, 'HTTP_')) {
-                    $name = $this->normalizeHeaderName(substr($key, 5));
-                } elseif (in_array($key, $special, true)) {
-                    $name = $this->normalizeHeaderName($key);
-                } else {
+                if (strncmp($key, 'HTTP_', 5) === 0) {
+                    $key = substr($key, 5);
+                }
+                elseif ( ! isset($special[$key])) {
                     continue;
                 }
 
-                $headers[$name] = $this->secureString($value);
+                $headers[$this->normalizeHeaderName($key)] = $this->secureString($value);
             }
 
             return $headers;
@@ -277,19 +278,23 @@
         {
             $raw = $_SERVER['HTTP_COOKIE'] ?? '';
 
-            if ( ! is_string($raw) || empty($raw)) {
+            if ($raw === '' || ! is_string($raw)) {
                 return [];
             }
 
             $cookies = [];
-            $parts = array_map('trim', explode(';', $raw));
+            $parts = explode(';', $raw);
 
             foreach ($parts as $part) {
-                if ( ! str_contains($part, '=')) {
+                $part = ltrim(rtrim($part));
+                $pos = strpos($part, '=');
+
+                if ($pos === false) {
                     continue;
                 }
 
-                [$name, $value] = explode('=', $part, 2);
+                $name  = substr($part, 0, $pos);
+                $value = substr($part, $pos + 1);
 
                 $cookies[$name] = [
                     'name'  => $this->secureString($name),

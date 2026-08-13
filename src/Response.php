@@ -5,13 +5,11 @@
     use InvalidArgumentException;
 
     use STDW\Contract\Http\ResponseInterface;
-    use STDW\Http\Spec\CookiesTrait;
     use STDW\Http\Spec\HeadersTrait;
 
 
     class Response implements ResponseInterface
     {
-        use CookiesTrait;
         use HeadersTrait;
 
 
@@ -303,5 +301,37 @@
                 || $code === 204
                 || $code === 304
             );
+        }
+
+        /**
+         * Normalizes cookie options ensuring a complete shape.
+         *
+         * @param array{
+         *     expires?: int,
+         *     path?: string,
+         *     domain?: string,
+         *     secure?: bool,
+         *     httponly?: bool,
+         *     samesite?: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
+         * } $options 
+         * @return array{
+         *     expires: int,
+         *     path: string,
+         *     domain: string,
+         *     secure: bool,
+         *     httponly: bool,
+         *     samesite: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
+         * }
+         */
+        protected function normalizeCookieOptions(array $options): array
+        {
+            return [
+                'expires' => $options['expires'] ?? 0,
+                'path' => $options['path'] ?? '/',
+                'domain' => $options['domain'] ?? '',
+                'secure' => $options['secure'] ?? false,
+                'httponly' => $options['httponly'] ?? false,
+                'samesite' => $options['samesite'] ?? 'strict',
+            ];
         }
     }

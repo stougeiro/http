@@ -11,7 +11,7 @@
          */
         protected function normalizeHeaderName(string $name): string
         {
-            return strtolower($name);
+            return strtolower(strtr($name, '_', '-'));
         }
 
         /**
@@ -20,6 +20,13 @@
          */
         protected function canonicalizeHeaderName(string $name): string
         {
-            return implode('-', array_map('ucfirst', explode('-', $name)));
+            $parts = explode('-', $name);
+            $count = count($parts);
+
+            for ($i = 0; $i < $count; $i++) {
+                $parts[$i] = ucfirst($parts[$i]);
+            }
+
+            return implode('-', $parts);
         }
     }

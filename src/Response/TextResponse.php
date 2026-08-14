@@ -17,7 +17,7 @@
          */
         public function withBody(?string $body): ResponseInterface
         {
-            if (empty($body)) {
+            if (is_null($body) || $body === '') {
                 throw new InvalidArgumentException("TextResponse requires a non-empty body");
             }
 

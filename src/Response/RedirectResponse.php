@@ -53,11 +53,11 @@
          */
         public function withBody(?string $body): ResponseInterface
         {
-            if ( ! empty($body)) {
-                throw new InvalidArgumentException("Invalid body on RedirectResponse");
+            if (is_null($body) || $body === '') {
+                return $this;
             }
 
-            return $this;
+            throw new InvalidArgumentException("Invalid body on RedirectResponse");
         }
 
         /** @return void

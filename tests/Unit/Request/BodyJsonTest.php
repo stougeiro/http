@@ -21,6 +21,7 @@ it('parses JSON body', function () {
     $request = new TestJsonRequest('{"name":"Sidney", "role":"admin"}');
     $body = $request->getBody();
 
+    expect($body)->toHaveKeys(['name', 'role']);
     expect($body['name'])->toBe('Sidney');
     expect($request->input('name'))->toBe('Sidney');
     expect($body['role'])->toBe('admin');

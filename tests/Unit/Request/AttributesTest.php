@@ -13,6 +13,8 @@ it('stores and retrieves attributes', function () {
 
     $attributes = $request->getAttributes();
 
+    expect($attributes)->toHaveKeys(['user', 'role']);
+
     expect($attributes['user'])->toBe('Sidney');
     expect($attributes['role'])->toBe('admin');
 
@@ -26,10 +28,12 @@ it('removes attributes', function () {
     $request->withAttribute('role', 'admin');
     $request->withAttribute('email', 'sidney@example.com');
 
+    expect($request->getAttributes())->toHaveKeys(['user', 'role', 'email']);
     expect($request->getAttribute('user'))->toBe('Sidney');
 
     $request->withoutAttribute('user');
 
+    expect($request->getAttributes())->toHaveKeys(['role', 'email']);
     expect($request->getAttribute('user'))->toBeNull();
     expect($request->getAttribute('role'))->toBe('admin');
     expect($request->getAttribute('email'))->toBe('sidney@example.com');
@@ -43,5 +47,6 @@ it('returns request instance from withoutAttribute for method chaining', functio
     $result = $request->withoutAttribute('temp');
 
     expect($result)->toBe($request);
+    expect($result->getAttribute('temp'))->toBe(null);
 });
 

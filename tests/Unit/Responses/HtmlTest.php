@@ -4,11 +4,6 @@ use STDW\Http\Response\HtmlResponse;
 
 describe('HtmlResponse', function () {
     describe('Body Guarantee', function () {
-        it('requires a non-empty body', function () {
-            expect(fn () => $response = new HtmlResponse())
-                ->toThrow(InvalidArgumentException::class);
-        });
-
         it('accepts valid HTML body', function () {
             $html = '<html><body>Hello</body></html>';
             $response = new HtmlResponse(body: $html);

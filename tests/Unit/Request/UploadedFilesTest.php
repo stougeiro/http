@@ -18,6 +18,7 @@ it('parses uploaded files correctly', function () {
     $files = $request->getUploadedFiles();
 
     expect(count($files))->toBe(1);
+    expect($files)->toHaveKey('avatar');
 
     $file = $files['avatar'];
 
@@ -61,6 +62,9 @@ it('parses uploaded files correctly (multiple)', function () {
     $request = new Request();
     $files = $request->getUploadedFiles();
 
+    expect(count($files))->toBe(1);
+    expect($files)->toHaveKey('avatar');
+
     $avatar = $files['avatar'];
 
     expect(count($avatar))->toBe(2);
@@ -82,6 +86,10 @@ it('returns null for missing file', function () {
     $_FILES = [];
 
     $request = new Request();
+    $files = $request->getUploadedFiles();
+
+    expect(count($files))->toBe(0);
+    expect($files)->toBe([]);
 
     expect($request->getUploadedFile('missing'))->toBeNull();
 });

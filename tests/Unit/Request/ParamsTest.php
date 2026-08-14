@@ -8,6 +8,7 @@ it('parses and secures GET params', function () {
     $request = new Request();
     $params = $request->getParams();
 
+    expect($params)->toHaveKeys(['name', 'age']);
     expect($params['name'])->toBe('Sidney');
     expect($params['age'])->toBe('30');
 
@@ -21,6 +22,7 @@ it('returns default when param is missing', function () {
     $request = new Request();
     $params = $request->getParams();
 
+    expect($params)->toBe([]);
     expect(isset($params['user']))->toBeFalse();
     expect($request->param('user', 'guest'))->toBe('guest');
 });

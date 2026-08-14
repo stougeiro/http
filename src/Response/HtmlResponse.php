@@ -11,6 +11,17 @@
     class HtmlResponse extends Response
     {
         /**
+         * @param int $status 
+         * @param array<string, string> $headers 
+         * @param null|string $body 
+         * @return void 
+         */
+        public function __construct(int $status = 200, array $headers = [], ?string $body = '<br />')
+        {
+            parent::__construct($status, $headers, $body);
+        }
+
+        /**
          * @param null|string $body
          * @return ResponseInterface
          * @throws InvalidArgumentException

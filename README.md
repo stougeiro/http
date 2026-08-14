@@ -54,12 +54,13 @@ use Closure;
 
 class SimpleMiddleware implements MiddlewareInterface
 {
-    public function process(RequestInterface $request, ResponseInterface $response, Closure $next): ResponseInterface
+    public function process(
+      RequestInterface $request,
+      ResponseInterface $response,
+      Closure $next): ResponseInterface
     {
         // Perform any pre-processing here...
-
         return $next($request, $response);
-
         // Or post-processing here...
     }
 }

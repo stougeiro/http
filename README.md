@@ -1,3 +1,6 @@
+![phpstan-level](https://img.shields.io/badge/PHPStan-Level%209-brightgreen)
+![pest-php](https://img.shields.io/badge/Tests-%20Passed-brightgreen)
+
 # Http
 
 ## ✨ Features

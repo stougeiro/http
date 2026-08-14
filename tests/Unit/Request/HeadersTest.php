@@ -9,8 +9,8 @@ it('parses headers correctly', function () {
     $request = new Request();
     $headers = $request->getHeaders();
 
-    expect($headers['x_token'])->toBe('abc123');
-    expect($headers['content_type'])->toBe('application/json');
+    expect($headers['x-token'])->toBe('abc123');
+    expect($headers['content-type'])->toBe('application/json');
 
     expect($request->getHeader('X_TOKEN'))->toBe('abc123');
     expect($request->getHeader('CONTENT_TYPE'))->toBe('application/json');

@@ -19,3 +19,29 @@ it('stores and retrieves attributes', function () {
     expect($request->getAttribute('missing'))->toBeNull();
 });
 
+it('removes attributes', function () {
+    $request = new Request();
+
+    $request->withAttribute('user', 'Sidney');
+    $request->withAttribute('role', 'admin');
+    $request->withAttribute('email', 'sidney@example.com');
+
+    expect($request->getAttribute('user'))->toBe('Sidney');
+
+    $request->withoutAttribute('user');
+
+    expect($request->getAttribute('user'))->toBeNull();
+    expect($request->getAttribute('role'))->toBe('admin');
+    expect($request->getAttribute('email'))->toBe('sidney@example.com');
+});
+
+it('returns request instance from withoutAttribute for method chaining', function () {
+    $request = new Request();
+
+    $request->withAttribute('temp', 'value');
+
+    $result = $request->withoutAttribute('temp');
+
+    expect($result)->toBe($request);
+});
+

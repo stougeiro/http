@@ -8,7 +8,7 @@ it('gets uri correctly', function () {
     $req = new Request;
     $uri = $req->getUri();
 
-    expect($uri->getpath())->toBe('/products/list');
+    expect($uri->getPath())->toBe('/products/list');
     expect($uri->getQuery())->toBe(['category' => 'books']);
     expect((string) $uri)->toBe('/products/list?category=books');
 });

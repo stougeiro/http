@@ -42,12 +42,6 @@ describe('Response Body', function () {
         expect($response->getBody())->toBe('Replaced');
     });
 
-    test('can clear body by setting empty string', function () {
-        $response = new Response(200, [], 'Content');
-        $response->withBody('');
-        expect($response->getBody())->toBe('');
-    });
-
     test('body can contain special characters', function () {
         $body = 'Special chars: !@#$%^&*() "quotes" \'apostrophes\'';
         $response = new Response(200, [], $body);

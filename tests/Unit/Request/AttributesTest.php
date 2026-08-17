@@ -5,6 +5,10 @@ use STDW\Http\Request;
 it('stores and retrieves attributes', function () {
     $request = new Request();
 
+    $attributes = $request->getAttributes();
+
+    expect($attributes)->toBe([]);
+
     $request->withAttribute('user', 'Sidney');
     $request->withAttribute('role', 'admin');
 
@@ -24,12 +28,18 @@ it('stores and retrieves attributes', function () {
 it('removes attributes', function () {
     $request = new Request();
 
+    $attributes = $request->getAttributes();
+
+    expect($attributes)->toBe([]);
+
     $request->withAttribute('user', 'Sidney');
     $request->withAttribute('role', 'admin');
     $request->withAttribute('email', 'sidney@example.com');
 
     expect($request->getAttributes())->toHaveKeys(['user', 'role', 'email']);
     expect($request->getAttribute('user'))->toBe('Sidney');
+    expect($request->getAttribute('role'))->toBe('admin');
+    expect($request->getAttribute('email'))->toBe('sidney@example.com');
 
     $request->withoutAttribute('user');
 
@@ -47,6 +57,6 @@ it('returns request instance from withoutAttribute for method chaining', functio
     $result = $request->withoutAttribute('temp');
 
     expect($result)->toBe($request);
-    expect($result->getAttribute('temp'))->toBe(null);
+    expect($result->getAttribute('temp'))->toBeNull();
 });
 

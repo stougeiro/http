@@ -43,7 +43,7 @@
 
         /** @var array<string, mixed> 
          */
-        protected array $attributes;
+        protected array $attributes = [];
 
 
         /** @return string 

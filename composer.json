@@ -42,7 +42,7 @@
     },
     "require": {
         "php": ">=8.2",
-        "stougeiro/http-contract": "^3.0"
+        "stougeiro/http-contract": "^4.0"
     },
     "autoload-dev": {
         "psr-4": {

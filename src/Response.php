@@ -238,21 +238,33 @@
          */
         public function send(): void
         {
-            /** Status
-             */
+            $this->sendStatus();
+            $this->sendHeaders();
+            $this->sendCookies();
+            $this->sendBody();
+        }
 
+
+        /** @return void 
+         */
+        protected function sendStatus(): void
+        {
             http_response_code($this->status);
+        }
 
-            /** Headers
-             */
-
+        /** @return void 
+         */
+        protected function sendHeaders(): void
+        {
             foreach ($this->headers as $name => $value) {
                 header($this->canonicalizeHeaderName($name) . ': ' . $value);
             }
+        }
 
-            /** Cookies 
-             */
-
+        /** @return void 
+         */
+        protected function sendCookies(): void
+        {
             /**
              * @var array{
              *     name: string,
@@ -274,10 +286,12 @@
                     $cookie['options']
                 );
             }
+        }
 
-            /** Body
-             */
-
+        /** @return void 
+         */
+        protected function sendBody(): void
+        {
             if (
                    $this->statusHasNoBody($this->status)
                 || is_null($this->body)
@@ -288,7 +302,6 @@
 
             echo $this->body;
         }
-
 
         /**
          * @param int $code 

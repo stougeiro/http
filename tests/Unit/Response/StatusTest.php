@@ -1,7 +1,6 @@
 <?php
 
 use STDW\Http\Response;
-use InvalidArgumentException;
 
 describe('Response Status', function () {
     test('default status is 200', function () {

@@ -1,7 +1,6 @@
 <?php declare(strict_types=1);
 
 use STDW\Http\Response\EmptyResponse;
-use InvalidArgumentException;
 
 class TestEmptyResponse extends EmptyResponse
 {

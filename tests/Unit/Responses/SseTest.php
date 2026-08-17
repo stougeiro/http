@@ -1,7 +1,6 @@
 <?php declare(strict_types=1);
 
 use STDW\Http\Response\SseResponse;
-use InvalidArgumentException;
 
 describe('SseResponse', function () {
     describe('Event Generator Requirement', function () {

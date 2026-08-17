@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Closure;
 use STDW\Contract\Http\MiddlewareInterface;
 use STDW\Contract\Http\RequestInterface;
 use STDW\Contract\Http\ResponseInterface;

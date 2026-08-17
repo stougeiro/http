@@ -69,22 +69,17 @@
                 ob_end_flush();
             }
 
-            /** Status
+            /** Send
              */
 
-            http_response_code($this->status);
-
-            /** Headers
-             */
+            $this->sendStatus();
 
             $this
                 ->withHeader('Content-Type', 'text/event-stream')
                 ->withHeader('Cache-Control', 'no-cache')
                 ->withHeader('Connection', 'keep-alive');
 
-            foreach ($this->headers as $name => $value) {
-                header($this->canonicalizeHeaderName($name) .': '. $value);
-            }
+            $this->sendHeaders();
 
             /** Event
              */

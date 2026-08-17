@@ -1,7 +1,6 @@
 <?php declare(strict_types=1);
 
 use STDW\Http\Response\TextResponse;
-use InvalidArgumentException;
 
 describe('TextResponse', function () {
     describe('Body Guarantee', function () {

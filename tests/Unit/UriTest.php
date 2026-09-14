@@ -84,3 +84,49 @@ it('keeps fragment on a router path', function () {
         ->and($uri->getFragment())->toBe('settings')
         ->and((string) $uri)->toBe('/dashboard#settings');
 });
+
+it('handles empty string URL', function () {
+    $uri = Uri::fromUrl('');
+
+    expect($uri->getScheme())->toBe('')
+        ->and($uri->getHost())->toBe('')
+        ->and($uri->getPath())->toBe('/')
+        ->and($uri->getQuery())->toBe([])
+        ->and($uri->getFragment())->toBeNull();
+});
+
+it('creates URI from array with user and pass', function () {
+    $uri = Uri::fromArray([
+        'scheme' => 'https',
+        'host' => 'example.com',
+        'port' => 443,
+        'user' => 'admin',
+        'pass' => 'secret123',
+        'path' => '/dashboard',
+    ]);
+
+    expect($uri->getUser())->toBe('admin')
+        ->and($uri->getPass())->toBe('secret123')
+        ->and($uri->getAuthority())->toBe('admin:secret123@example.com:443')
+        ->and((string) $uri)->toBe('https://admin:secret123@example.com:443/dashboard');
+});
+
+it('handles URL with only fragment', function () {
+    $uri = Uri::fromUrl('#section');
+
+    expect($uri->getScheme())->toBe('')
+        ->and($uri->getHost())->toBe('')
+        ->and($uri->getPath())->toBe('')
+        ->and($uri->getFragment())->toBe('section')
+        ->and((string) $uri)->toBe('#section');
+});
+
+it('handles URL with only query string', function () {
+    $uri = Uri::fromUrl('?foo=bar&baz=1');
+
+    expect($uri->getScheme())->toBe('')
+        ->and($uri->getHost())->toBe('')
+        ->and($uri->getPath())->toBe('')
+        ->and($uri->getQuery())->toBe(['foo' => 'bar', 'baz' => '1'])
+        ->and((string) $uri)->toBe('?foo=bar&baz=1');
+});

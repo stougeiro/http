@@ -43,3 +43,26 @@ it('returns false when header does not exist', function () {
     expect($request->hasHeader('X_MISSING'))->toBeFalse();
     expect($request->hasHeader('CONTENT_TYPE'))->toBeFalse();
 });
+
+it('skips non-string values in SERVER', function () {
+    $_SERVER['HTTP_X_VALID'] = 'yes';
+    $_SERVER['HTTP_X_INT'] = 123;
+    $_SERVER['HTTP_X_ARRAY'] = ['a', 'b'];
+
+    $request = new Request();
+    $headers = $request->getHeaders();
+
+    expect($headers)->toHaveKey('x-valid');
+    expect($headers)->not->toHaveKey('x-int');
+    expect($headers)->not->toHaveKey('x-array');
+});
+
+it('handles CONTENT_MD5 header', function () {
+    $_SERVER['CONTENT_MD5'] = 'abc123hash';
+
+    $request = new Request();
+    $headers = $request->getHeaders();
+
+    expect($headers)->toHaveKey('content-md5');
+    expect($headers['content-md5'])->toBe('abc123hash');
+});

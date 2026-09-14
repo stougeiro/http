@@ -12,3 +12,22 @@ it('gets uri correctly', function () {
     expect($uri->getQuery())->toBe(['category' => 'books']);
     expect((string) $uri)->toBe('/products/list?category=books');
 });
+
+it('defaults to / when REQUEST_URI is absent', function () {
+    unset($_SERVER['REQUEST_URI']);
+
+    $request = new Request();
+    $uri = $request->getUri();
+
+    expect($uri->getPath())->toBe('/');
+    expect((string) $uri)->toBe('/');
+});
+
+it('defaults to / when REQUEST_URI is empty', function () {
+    $_SERVER['REQUEST_URI'] = '';
+
+    $request = new Request();
+    $uri = $request->getUri();
+
+    expect($uri->getPath())->toBe('/');
+});

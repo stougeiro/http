@@ -9,7 +9,7 @@ class FakeUploadedFile extends UploadedFile
     public bool $shouldMove;
     public bool $shouldRename;
 
-    protected function doIsdir(string $filename): bool
+    protected function doIsDir(string $filename): bool
     { return $this->isDir; }
 
     protected function doMoveUploadedFile(string $from, string $to): bool
@@ -152,4 +152,47 @@ it('rename file', function () {
 
     expect($file->getName())->toBe('wonderful.png');
     expect($file->getPath())->toBe('/other/local/wonderful.png');
+});
+
+it('getRawData returns original constructor data', function () {
+    $file = new UploadedFile(
+        'document.pdf',
+        'application/pdf',
+        '/tmp/php789',
+        99999,
+        UPLOAD_ERR_OK
+    );
+
+    $raw = $file->getRawData();
+
+    expect($raw)->toBe([
+        'name' => 'document.pdf',
+        'type' => 'application/pdf',
+        'tmp_name' => '/tmp/php789',
+        'size' => 99999,
+        'error' => UPLOAD_ERR_OK,
+    ]);
+});
+
+it('getPath is null before moveTo', function () {
+    $file = new UploadedFile(
+        'test.txt',
+        'text/plain',
+        '/tmp/php111',
+        500,
+        UPLOAD_ERR_OK
+    );
+
+    expect($file->getPath())->toBeNull();
+});
+
+it('moveTo throws when both tmpName and path are null', function () {
+    $file = new FakeUploadedFile('orphan.txt', 'text/plain', '/tmp/not-used', 0, UPLOAD_ERR_OK);
+    $file->tmpName = null;
+    $file->path = null;
+    $file->shouldMove = false;
+    $file->shouldRename = false;
+
+    expect(fn() => $file->moveTo('/tmp/target'))
+        ->toThrow(RuntimeException::class, 'Source file is not available.');
 });

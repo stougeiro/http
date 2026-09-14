@@ -35,3 +35,44 @@ it('handles invalid JSON', function () {
 
     expect($body)->toHaveKey('__ERROR__');
 });
+
+it('returns empty array when JSON is not array', function () {
+    $_SERVER['CONTENT_TYPE'] = 'application/json';
+    $request = new TestJsonRequest('"just a string"');
+    $body = $request->getBody();
+
+    expect($body)->toBe([]);
+});
+
+it('returns empty array when JSON is a number', function () {
+    $_SERVER['CONTENT_TYPE'] = 'application/json';
+    $request = new TestJsonRequest('42');
+    $body = $request->getBody();
+
+    expect($body)->toBe([]);
+});
+
+it('returns empty array when JSON is a boolean', function () {
+    $_SERVER['CONTENT_TYPE'] = 'application/json';
+    $request = new TestJsonRequest('true');
+    $body = $request->getBody();
+
+    expect($body)->toBe([]);
+});
+
+it('returns empty array when JSON is null', function () {
+    $_SERVER['CONTENT_TYPE'] = 'application/json';
+    $request = new TestJsonRequest('null');
+    $body = $request->getBody();
+
+    expect($body)->toBe([]);
+});
+
+it('secures JSON body keys and values', function () {
+    $_SERVER['CONTENT_TYPE'] = 'application/json';
+    $request = new TestJsonRequest('{"<key>": "<value>"}');
+    $body = $request->getBody();
+
+    expect($body)->toHaveKey('&lt;key&gt;');
+    expect($body['&lt;key&gt;'])->toBe('&lt;value&gt;');
+});

@@ -93,3 +93,65 @@ it('returns null for missing file', function () {
 
     expect($request->getUploadedFile('missing'))->toBeNull();
 });
+
+it('skips non-array entries in FILES', function () {
+    $_FILES = [
+        'valid' => [
+            'name' => 'ok.txt',
+            'type' => 'text/plain',
+            'tmp_name' => '/tmp/php123',
+            'error' => UPLOAD_ERR_OK,
+            'size' => 100,
+        ],
+        'invalid' => 'not-an-array',
+    ];
+
+    $request = new Request();
+    $files = $request->getUploadedFiles();
+
+    expect($files)->toHaveKey('valid');
+    expect($files)->not->toHaveKey('invalid');
+});
+
+it('skips file array with wrong types in multiple upload', function () {
+    $_FILES = [
+        'docs' => [
+            'name' => [123, 'valid.pdf'],
+            'type' => ['text/plain', 'application/pdf'],
+            'tmp_name' => ['/tmp/a', '/tmp/b'],
+            'error' => [UPLOAD_ERR_OK, UPLOAD_ERR_OK],
+            'size' => [100, 200],
+        ],
+    ];
+
+    $request = new Request();
+    $files = $request->getUploadedFiles();
+
+    expect(count($files['docs']))->toBe(1);
+    expect($files['docs'][0]->getName())->toBe('valid.pdf');
+});
+
+it('skips single file with wrong field types', function () {
+    $_FILES = [
+        'bad' => [
+            'name' => 123,
+            'type' => 'text/plain',
+            'tmp_name' => '/tmp/php123',
+            'error' => UPLOAD_ERR_OK,
+            'size' => 100,
+        ],
+    ];
+
+    $request = new Request();
+    $files = $request->getUploadedFiles();
+
+    expect($files)->not->toHaveKey('bad');
+});
+
+it('returns empty array when FILES is empty', function () {
+    $_FILES = [];
+
+    $request = new Request();
+
+    expect($request->getUploadedFiles())->toBe([]);
+});

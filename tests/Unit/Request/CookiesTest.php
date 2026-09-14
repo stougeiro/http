@@ -35,3 +35,31 @@ it('secures cookie values', function () {
     expect($cookie['name'])->toBe('xss');
     expect($cookie['value'])->toBe('&lt;script&gt;alert(1)&lt;/script&gt;');
 });
+
+it('skips cookie parts without = sign', function () {
+    $_SERVER['HTTP_COOKIE'] = 'valid=yes; noequals; other=ok';
+
+    $request = new Request();
+    $cookies = $request->getCookies();
+
+    expect($cookies)->toHaveKeys(['valid', 'other']);
+    expect($cookies)->not->toHaveKey('noequals');
+    expect($cookies['valid']['value'])->toBe('yes');
+    expect($cookies['other']['value'])->toBe('ok');
+});
+
+it('returns empty array when no cookies', function () {
+    unset($_SERVER['HTTP_COOKIE']);
+
+    $request = new Request();
+
+    expect($request->getCookies())->toBe([]);
+});
+
+it('returns null for non-existent cookie', function () {
+    $_SERVER['HTTP_COOKIE'] = 'exists=1';
+
+    $request = new Request();
+
+    expect($request->getCookie('missing'))->toBeNull();
+});

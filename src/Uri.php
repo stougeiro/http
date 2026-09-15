@@ -72,7 +72,7 @@
             $uri->port = $parts['port'] ?? null;
             $uri->user = $parts['user'] ?? null;
             $uri->pass = $parts['pass'] ?? null;
-            $uri->path = $parts['path'] ?? '/';
+            $uri->path = $parts['path'] ?? '';
             $uri->fragment = $parts['fragment'] ?? null;
 
             if (isset($parts['query'])) {

@@ -21,9 +21,14 @@
          * @param array<string, string> $headers
          * @param null|string $body
          * @return void
+         * @throws InvalidArgumentException 
          */
         public function __construct(string $filePath, int $status = 200, array $headers = [], ?string $body = '')
         {
+            if (str_contains($filePath, '..')) {
+                throw new InvalidArgumentException("Invalid file path: path traversal detected");
+            }
+
             $this->filePath = $filePath;
 
             parent::__construct($status, $headers, $body);
@@ -77,6 +82,7 @@
 
             else {
                 $fileName = basename($this->filePath);
+                $fileName = str_replace(['"', "\r", "\n"], '', $fileName);
                 $fileSize = (string) filesize($this->filePath);
 
                 $this

@@ -28,6 +28,14 @@ trait TestableResponse
 
     protected function sendBody(): void
     {
+        if (
+               $this->statusHasNoBody($this->getStatus())
+            || is_null($this->getBody())
+            || $this->getBody() === ''
+        ) {
+            return;
+        }
+
         $this->sentBody[] = $this->getBody();
     }
 }

@@ -28,6 +28,31 @@ describe('RedirectResponse', function () {
                 expect($response)->toBeInstanceOf(RedirectResponse::class);
             }
         });
+
+        it('accepts protocol-relative URLs', function () {
+            $response = new RedirectResponse('//cdn.example.com/file');
+            expect($response)->toBeInstanceOf(RedirectResponse::class);
+        });
+
+        it('rejects javascript scheme', function () {
+            expect(fn () => new RedirectResponse('javascript:alert(1)'))
+                ->toThrow(InvalidArgumentException::class, 'not allowed');
+        });
+
+        it('rejects data scheme', function () {
+            expect(fn () => new RedirectResponse('data:text/html,<h1>hi</h1>'))
+                ->toThrow(InvalidArgumentException::class, 'not allowed');
+        });
+
+        it('rejects file scheme', function () {
+            expect(fn () => new RedirectResponse('file:///etc/passwd'))
+                ->toThrow(InvalidArgumentException::class, 'not allowed');
+        });
+
+        it('rejects invalid URLs', function () {
+            expect(fn () => new RedirectResponse('://invalid'))
+                ->toThrow(InvalidArgumentException::class, 'Invalid redirect URL');
+        });
     });
 
     describe('Status Code Guarantee', function () {

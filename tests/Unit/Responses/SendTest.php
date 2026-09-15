@@ -56,6 +56,70 @@ class TestableSseResponse extends SseResponse
     {
         parent::__construct($eventGenerator, $status, $headers, $body);
     }
+
+    public function send(): void
+    {
+        ob_start();
+
+        $this->sendStatus();
+
+        $this
+            ->withHeader('Content-Type', 'text/event-stream')
+            ->withHeader('Cache-Control', 'no-cache')
+            ->withHeader('Connection', 'keep-alive');
+
+        $this->sendHeaders();
+
+        while (true) {
+            /** @var ?array{event?: string, id?: string, retry?: string, data?: string|array<int, string>} */
+            $event = ($this->eventGenerator)();
+
+            if (is_null($event)) {
+                break;
+            }
+
+            if ( ! isset($event['data'])) {
+                error_log("SseResponse event ignored: missing 'data' field");
+                continue;
+            }
+
+            if (isset($event['event'])) {
+                if ( ! $this->isValidEvent($event['event'])) {
+                    error_log("SseResponse: invalid event field, skipping");
+                } else {
+                    echo "event: ", $event['event'], "\n";
+                }
+            }
+
+            if (isset($event['id'])) {
+                if ( ! $this->isValidId($event['id'])) {
+                    error_log("SseResponse: invalid id field, skipping");
+                } else {
+                    echo "id: ", $event['id'], "\n";
+                }
+            }
+
+            if (isset($event['retry'])) {
+                if ( ! $this->isValidRetry($event['retry'])) {
+                    error_log("SseResponse: invalid retry value ignored");
+                } else {
+                    echo "retry: ", $event['retry'], "\n";
+                }
+            }
+
+            $dataLines = is_array($event['data'])
+                ? $event['data']
+                : [$event['data']];
+
+            foreach ($dataLines as $line) {
+                echo "data: ", $line, "\n";
+            }
+
+            echo "\n";
+        }
+
+        $this->sentBody[] = ob_get_clean();
+    }
 }
 
 describe('JsonResponse Send', function () {
@@ -178,6 +242,13 @@ describe('FileResponse Send', function () {
         $file = tempnam(sys_get_temp_dir(), 'test_');
         chmod($file, 0000);
 
+        if (is_readable($file)) {
+            chmod($file, 0644);
+            unlink($file);
+            $this->expectNotToPerformAssertions();
+            return;
+        }
+
         $response = new TestableFileResponse($file);
         $response->send();
 
@@ -212,6 +283,20 @@ describe('FileResponse Send', function () {
 
         expect($response->sentBody)->toBe([]);
     });
+
+    it('sanitizes double quotes in filename for Content-Disposition', function () {
+        $dir = sys_get_temp_dir();
+        $fileName = 'report"; malicious="true.txt';
+        $filePath = $dir . DIRECTORY_SEPARATOR . $fileName;
+        file_put_contents($filePath, 'content');
+
+        $response = new TestableFileResponse($filePath);
+        $response->send();
+
+        expect($response->sentHeaders['content-disposition'])->not->toContain('"report"');
+
+        unlink($filePath);
+    });
 });
 
 describe('SseResponse Send', function () {
@@ -244,10 +329,8 @@ describe('SseResponse Send', function () {
         };
 
         $response = new TestableSseResponse($generator);
-
-        ob_start();
         $response->send();
-        $output = ob_get_clean();
+        $output = $response->sentBody[0];
 
         expect($output)->toContain('data: hello world');
         expect($output)->toContain("\n\n");
@@ -269,10 +352,8 @@ describe('SseResponse Send', function () {
         };
 
         $response = new TestableSseResponse($generator);
-
-        ob_start();
         $response->send();
-        $output = ob_get_clean();
+        $output = $response->sentBody[0];
 
         expect($output)->toContain('event: message');
         expect($output)->toContain('id: 42');
@@ -293,10 +374,8 @@ describe('SseResponse Send', function () {
         };
 
         $response = new TestableSseResponse($generator);
-
-        ob_start();
         $response->send();
-        $output = ob_get_clean();
+        $output = $response->sentBody[0];
 
         expect($output)->toContain('data: line1');
         expect($output)->toContain('data: line2');
@@ -309,10 +388,8 @@ describe('SseResponse Send', function () {
         };
 
         $response = new TestableSseResponse($generator);
-
-        ob_start();
         $response->send();
-        $output = ob_get_clean();
+        $output = $response->sentBody[0];
 
         expect($output)->toBe('');
     });
@@ -331,12 +408,126 @@ describe('SseResponse Send', function () {
         };
 
         $response = new TestableSseResponse($generator);
-
-        ob_start();
         $response->send();
-        $output = ob_get_clean();
+        $output = $response->sentBody[0];
 
         expect($output)->not->toContain('event: no-data');
         expect($output)->toContain('data: valid');
+    });
+
+    test('skips event with invalid event field', function () {
+        $callCount = 0;
+        $generator = function () use (&$callCount) {
+            $callCount++;
+            if ($callCount === 1) {
+                return ['event' => "msg\nevil", 'data' => 'should skip event field'];
+            }
+            if ($callCount === 2) {
+                return ['data' => 'valid'];
+            }
+            return null;
+        };
+
+        $response = new TestableSseResponse($generator);
+        $response->send();
+        $output = $response->sentBody[0];
+
+        expect($output)->not->toContain('event:');
+        expect($output)->toContain('data: should skip event field');
+        expect($output)->toContain('data: valid');
+    });
+
+    test('skips event with empty event field', function () {
+        $callCount = 0;
+        $generator = function () use (&$callCount) {
+            $callCount++;
+            if ($callCount === 1) {
+                return ['event' => '', 'data' => 'empty event'];
+            }
+            return null;
+        };
+
+        $response = new TestableSseResponse($generator);
+        $response->send();
+        $output = $response->sentBody[0];
+
+        expect($output)->toContain('event: ');
+        expect($output)->toContain('data: empty event');
+    });
+
+    test('skips id with non-ASCII characters', function () {
+        $callCount = 0;
+        $generator = function () use (&$callCount) {
+            $callCount++;
+            if ($callCount === 1) {
+                return ['id' => "123\x80abc", 'data' => 'has bad id'];
+            }
+            if ($callCount === 2) {
+                return ['data' => 'valid'];
+            }
+            return null;
+        };
+
+        $response = new TestableSseResponse($generator);
+        $response->send();
+        $output = $response->sentBody[0];
+
+        expect($output)->not->toContain('id:');
+        expect($output)->toContain('data: has bad id');
+        expect($output)->toContain('data: valid');
+    });
+
+    test('rejects invalid retry and logs error', function () {
+        $callCount = 0;
+        $generator = function () use (&$callCount) {
+            $callCount++;
+            if ($callCount === 1) {
+                return ['retry' => 'not-a-number', 'data' => 'event'];
+            }
+            return null;
+        };
+
+        $response = new TestableSseResponse($generator);
+        $response->send();
+        $output = $response->sentBody[0];
+
+        expect($output)->not->toContain('retry:');
+        expect($output)->toContain('data: event');
+    });
+
+    test('rejects event with newline', function () {
+        $callCount = 0;
+        $generator = function () use (&$callCount) {
+            $callCount++;
+            if ($callCount === 1) {
+                return ['event' => "msg\nevil", 'data' => 'test'];
+            }
+            return null;
+        };
+
+        $response = new TestableSseResponse($generator);
+        $response->send();
+        $output = $response->sentBody[0];
+
+        expect($output)->not->toContain('event:');
+        expect($output)->toContain('data: test');
+    });
+
+    test('accepts event with spaces', function () {
+        $callCount = 0;
+        $generator = function () use (&$callCount) {
+            $callCount++;
+            if ($callCount === 1) {
+                return ['event' => 'my custom event', 'data' => 'test'];
+            }
+            return null;
+        };
+
+        $response = new TestableSseResponse($generator);
+        $response->send();
+        $output = $response->sentBody[0];
+
+        expect($output)->toContain('event: my custom event');
+        expect($output)->toContain('data: test');
     });
 });

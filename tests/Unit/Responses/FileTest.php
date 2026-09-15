@@ -16,7 +16,6 @@ describe('FileResponse', function () {
                 '/absolute/path/file.txt',
                 'relative/path/file.pdf',
                 './current/file.doc',
-                '../parent/file.zip',
                 'single_file.txt',
             ];
             
@@ -24,6 +23,21 @@ describe('FileResponse', function () {
                 $response = new FileResponse($path);
                 expect($response)->toBeInstanceOf(FileResponse::class);
             }
+        });
+
+        it('throws exception for path traversal with ..', function () {
+            expect(fn () => new FileResponse('../etc/passwd'))
+                ->toThrow(InvalidArgumentException::class, 'path traversal detected');
+        });
+
+        it('throws exception for absolute path traversal', function () {
+            expect(fn () => new FileResponse('/var/www/../../etc/passwd'))
+                ->toThrow(InvalidArgumentException::class, 'path traversal detected');
+        });
+
+        it('throws exception for relative traversal', function () {
+            expect(fn () => new FileResponse('docs/../../secret'))
+                ->toThrow(InvalidArgumentException::class, 'path traversal detected');
         });
     });
 

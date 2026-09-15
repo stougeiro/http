@@ -116,7 +116,7 @@
         public function withHeader(string $name, string $value): ResponseInterface
         {
             $key = $this->normalizeHeaderName($name);
-            $this->headers[$key] = $value;
+            $this->headers[$key] = (string) preg_replace('/[\r\n]/', '', $value);
 
             return $this;
         }
@@ -342,9 +342,28 @@
                 'expires' => $options['expires'] ?? 0,
                 'path' => $options['path'] ?? '/',
                 'domain' => $options['domain'] ?? '',
-                'secure' => $options['secure'] ?? false,
-                'httponly' => $options['httponly'] ?? false,
+                'secure' => $options['secure'] ?? $this->isSecureRequest(),
+                'httponly' => $options['httponly'] ?? true,
                 'samesite' => $options['samesite'] ?? 'strict',
             ];
+        }
+
+        /** @return bool 
+         */
+        protected function isSecureRequest(): bool
+        {
+            if ( ! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+                return true;
+            }
+
+            if (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] === '443') {
+                return true;
+            }
+
+            if ( ! empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+                return true;
+            }
+
+            return false;
         }
     }

@@ -67,10 +67,12 @@ describe('Response Cookies', function () {
         expect($cookie['options']['expires'])->toBe(0);
         expect($cookie['options']['domain'])->toBe('');
         expect($cookie['options']['secure'])->toBeFalse();
-        expect($cookie['options']['httponly'])->toBeFalse();
+        expect($cookie['options']['httponly'])->toBeTrue();
     });
 
     test('cookie options have defaults', function () {
+        unset($_SERVER['HTTPS'], $_SERVER['SERVER_PORT'], $_SERVER['HTTP_X_FORWARDED_PROTO']);
+
         $response = new Response();
         $response->withCookie('simple', 'value');
         
@@ -79,8 +81,62 @@ describe('Response Cookies', function () {
         expect($cookie['options']['path'])->toBe('/');
         expect($cookie['options']['domain'])->toBe('');
         expect($cookie['options']['secure'])->toBeFalse();
-        expect($cookie['options']['httponly'])->toBeFalse();
+        expect($cookie['options']['httponly'])->toBeTrue();
         expect($cookie['options']['samesite'])->toBe('strict');
+    });
+
+    test('secure defaults to false on HTTP', function () {
+        $_SERVER['HTTPS'] = 'off';
+        $_SERVER['SERVER_PORT'] = 80;
+
+        $response = new Response();
+        $response->withCookie('test', 'value');
+
+        $cookie = $response->getCookie('test');
+        expect($cookie['options']['secure'])->toBeFalse();
+    });
+
+    test('secure defaults to true on HTTPS', function () {
+        $_SERVER['HTTPS'] = 'on';
+
+        $response = new Response();
+        $response->withCookie('test', 'value');
+
+        $cookie = $response->getCookie('test');
+        expect($cookie['options']['secure'])->toBeTrue();
+    });
+
+    test('secure defaults to true on port 443', function () {
+        unset($_SERVER['HTTPS']);
+        $_SERVER['SERVER_PORT'] = '443';
+
+        $response = new Response();
+        $response->withCookie('test', 'value');
+
+        $cookie = $response->getCookie('test');
+        expect($cookie['options']['secure'])->toBeTrue();
+    });
+
+    test('secure defaults to true via X-Forwarded-Proto', function () {
+        unset($_SERVER['HTTPS']);
+        unset($_SERVER['SERVER_PORT']);
+        $_SERVER['HTTP_X_FORWARDED_PROTO'] = 'https';
+
+        $response = new Response();
+        $response->withCookie('test', 'value');
+
+        $cookie = $response->getCookie('test');
+        expect($cookie['options']['secure'])->toBeTrue();
+    });
+
+    test('explicit secure false overrides auto detection', function () {
+        $_SERVER['HTTPS'] = 'on';
+
+        $response = new Response();
+        $response->withCookie('test', 'value', ['secure' => false]);
+
+        $cookie = $response->getCookie('test');
+        expect($cookie['options']['secure'])->toBeFalse();
     });
 
     test('can remove cookie with withoutCookie', function () {

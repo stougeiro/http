@@ -106,4 +106,32 @@ describe('Response Headers', function () {
         
         expect($response->getHeaders())->toHaveCount(count($headers));
     });
+
+    test('strips CRLF from header value', function () {
+        $response = new Response();
+        $response->withHeader('X-Test', "value\r\nX-Injected: true");
+
+        expect($response->getHeader('X-Test'))->toBe('valueX-Injected: true');
+    });
+
+    test('strips lone CR from header value', function () {
+        $response = new Response();
+        $response->withHeader('X-Test', "value\rinjected");
+
+        expect($response->getHeader('X-Test'))->toBe('valueinjected');
+    });
+
+    test('strips lone LF from header value', function () {
+        $response = new Response();
+        $response->withHeader('X-Test', "value\ninjected");
+
+        expect($response->getHeader('X-Test'))->toBe('valueinjected');
+    });
+
+    test('preserves normal header values', function () {
+        $response = new Response();
+        $response->withHeader('X-Test', 'normal value with spaces');
+
+        expect($response->getHeader('X-Test'))->toBe('normal value with spaces');
+    });
 });

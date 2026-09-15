@@ -54,9 +54,9 @@ it('serializes without scheme, credentials, port and fragment when they are not 
 it('uses the default path when the URL has no path and preserves authority formatting', function () {
     $uri = Uri::fromUrl('http://user@localhost:8080?status=ok');
 
-    expect($uri->getPath())->toBe('/')
+    expect($uri->getPath())->toBe('')
         ->and($uri->getAuthority())->toBe('user@localhost:8080')
-        ->and((string) $uri)->toBe('http://user@localhost:8080/?status=ok');
+        ->and((string) $uri)->toBe('http://user@localhost:8080?status=ok');
 });
 
 it('parses a router-style path without host and scheme', function () {
@@ -90,7 +90,7 @@ it('handles empty string URL', function () {
 
     expect($uri->getScheme())->toBe('')
         ->and($uri->getHost())->toBe('')
-        ->and($uri->getPath())->toBe('/')
+        ->and($uri->getPath())->toBe('')
         ->and($uri->getQuery())->toBe([])
         ->and($uri->getFragment())->toBeNull();
 });

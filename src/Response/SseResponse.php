@@ -65,9 +65,7 @@
          */
         public function send(): void
         {
-            while (ob_get_level() > 0) {
-                ob_end_flush();
-            }
+            $this->flushOutputBuffers();
 
             /** Send
              */
@@ -108,17 +106,29 @@
 
                 // event
                 if (isset($event['event'])) {
-                    echo "event: ", $event['event'], "\n";
+                    if ( ! $this->isValidEvent($event['event'])) {
+                        error_log("SseResponse: invalid event field, skipping");
+                    } else {
+                        echo "event: ", $event['event'], "\n";
+                    }
                 }
 
                 // id
                 if (isset($event['id'])) {
-                    echo "id: ", $event['id'], "\n";
+                    if ( ! $this->isValidId($event['id'])) {
+                        error_log("SseResponse: invalid id field, skipping");
+                    } else {
+                        echo "id: ", $event['id'], "\n";
+                    }
                 }
 
                 // retry
                 if (isset($event['retry'])) {
-                    echo "retry: ", $event['retry'], "\n";
+                    if ( ! $this->isValidRetry($event['retry'])) {
+                        error_log("SseResponse: invalid retry value ignored");
+                    } else {
+                        echo "retry: ", $event['retry'], "\n";
+                    }
                 }
 
                 // data
@@ -134,13 +144,55 @@
 
                 flush();
 
-                if (function_exists('fastcgi_finish_request')) {
-                    fastcgi_finish_request();
-                }
-
                 if (connection_aborted()) {
                     break;
                 }
+            }
+
+            if (function_exists('fastcgi_finish_request')) {
+                fastcgi_finish_request();
+            }
+        }
+
+        /**
+         * @param string $event 
+         * @return bool 
+         */
+        protected function isValidEvent(string $event): bool
+        {
+            $valid = preg_replace('/[\r\n]/', '', $event);
+
+            return $valid === $event;
+        }
+
+        /**
+         * @param string $id 
+         * @return bool 
+         */
+        protected function isValidId(string $id): bool
+        {
+            $valid = preg_replace('/[^\x20-\x7E]/', '', $id);
+
+            return $valid === $id;
+        }
+
+        /**
+         * @param string $retry 
+         * @return bool 
+         */
+        protected function isValidRetry(string $retry): bool
+        {
+            $valid = preg_replace('/[^0-9]/', '', $retry);
+
+            return $valid === $retry;
+        }
+
+        /** @return void
+         */
+        protected function flushOutputBuffers(): void
+        {
+            while (ob_get_level() > 0) {
+                ob_end_flush();
             }
         }
     }

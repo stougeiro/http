@@ -10,7 +10,7 @@ class AddHeaderMiddleware implements MiddlewareInterface
 {
     public function __construct(private string $name, private string $value) {}
 
-    public function handle(\STDW\Contract\Http\RequestInterface $request, \STDW\Contract\Http\ResponseInterface $response, callable $next): \STDW\Contract\Http\ResponseInterface
+    public function process(\STDW\Contract\Http\RequestInterface $request, \STDW\Contract\Http\ResponseInterface $response, \Closure $next): \STDW\Contract\Http\ResponseInterface
     {
         $response->withHeader($this->name, $this->value);
         return $next($request, $response);
@@ -19,7 +19,7 @@ class AddHeaderMiddleware implements MiddlewareInterface
 
 class StopMiddleware implements MiddlewareInterface
 {
-    public function handle(\STDW\Contract\Http\RequestInterface $request, \STDW\Contract\Http\ResponseInterface $response, callable $next): \STDW\Contract\Http\ResponseInterface
+    public function process(\STDW\Contract\Http\RequestInterface $request, \STDW\Contract\Http\ResponseInterface $response, \Closure $next): \STDW\Contract\Http\ResponseInterface
     {
         $response->withBody('stopped');
         $response->withStatus(403);
@@ -31,7 +31,7 @@ class AppendBodyMiddleware implements MiddlewareInterface
 {
     public function __construct(private string $text) {}
 
-    public function handle(\STDW\Contract\Http\RequestInterface $request, \STDW\Contract\Http\ResponseInterface $response, callable $next): \STDW\Contract\Http\ResponseInterface
+    public function process(\STDW\Contract\Http\RequestInterface $request, \STDW\Contract\Http\ResponseInterface $response, \Closure $next): \STDW\Contract\Http\ResponseInterface
     {
         $body = $response->getBody() ?? '';
         $response->withBody($body . $this->text);
@@ -129,14 +129,14 @@ describe('Feature: Middleware Pipeline Integration', function () {
 
         $manager = new MiddlewareManager();
         $manager->add(new class implements MiddlewareInterface {
-            public function handle(\STDW\Contract\Http\RequestInterface $request, \STDW\Contract\Http\ResponseInterface $response, callable $next): \STDW\Contract\Http\ResponseInterface
+            public function process(\STDW\Contract\Http\RequestInterface $request, \STDW\Contract\Http\ResponseInterface $response, \Closure $next): \STDW\Contract\Http\ResponseInterface
             {
                 $request->withAttribute('user', 'john');
                 return $next($request, $response);
             }
         });
         $manager->add(new class implements MiddlewareInterface {
-            public function handle(\STDW\Contract\Http\RequestInterface $request, \STDW\Contract\Http\ResponseInterface $response, callable $next): \STDW\Contract\Http\ResponseInterface
+            public function process(\STDW\Contract\Http\RequestInterface $request, \STDW\Contract\Http\ResponseInterface $response, \Closure $next): \STDW\Contract\Http\ResponseInterface
             {
                 $user = $request->getAttribute('user');
                 $response->withBody("User: {$user}");

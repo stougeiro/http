@@ -14,6 +14,12 @@
          */
         protected string $location;
 
+        /** @var array<string>
+         */
+        protected const ALLOWED_SCHEMES = [
+            'http', 'https', ''
+        ];
+
 
         /**
          * @param string $location
@@ -21,9 +27,26 @@
          * @param array<string, string> $headers
          * @param null|string $body
          * @return void
+         * @throws InvalidArgumentException
          */
         public function __construct(string $location, int $status = 302, array $headers = [], ?string $body = '')
         {
+            $parsed = parse_url($location);
+
+            if ($parsed === false) {
+                throw new InvalidArgumentException("Invalid redirect URL: {$location}");
+            }
+
+            $scheme = strtolower($parsed['scheme'] ?? '');
+
+            if (str_contains($location, ':') && empty($parsed['scheme'])) {
+                throw new InvalidArgumentException("Invalid redirect URL: {$location}");
+            }
+
+            if ( ! in_array($scheme, self::ALLOWED_SCHEMES, true)) {
+                throw new InvalidArgumentException("Redirect URL scheme not allowed: {$scheme}");
+            }
+
             $this->location = $location;
 
             parent::__construct($status, $headers, $body);

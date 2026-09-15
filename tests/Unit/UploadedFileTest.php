@@ -188,10 +188,15 @@ it('getPath is null before moveTo', function () {
 
 it('moveTo throws when both tmpName and path are null', function () {
     $file = new FakeUploadedFile('orphan.txt', 'text/plain', '/tmp/not-used', 0, UPLOAD_ERR_OK);
-    $file->tmpName = null;
-    $file->path = null;
+    $file->isDir = true;
     $file->shouldMove = false;
     $file->shouldRename = false;
+
+    $tmpNameRef = new \ReflectionProperty(UploadedFile::class, 'tmpName');
+    $tmpNameRef->setValue($file, null);
+
+    $pathRef = new \ReflectionProperty(UploadedFile::class, 'path');
+    $pathRef->setValue($file, null);
 
     expect(fn() => $file->moveTo('/tmp/target'))
         ->toThrow(RuntimeException::class, 'Source file is not available.');

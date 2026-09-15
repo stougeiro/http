@@ -20,13 +20,6 @@
          */
         protected function canonicalizeHeaderName(string $name): string
         {
-            $parts = explode('-', $name);
-            $count = count($parts);
-
-            for ($i = 0; $i < $count; $i++) {
-                $parts[$i] = ucfirst($parts[$i]);
-            }
-
-            return implode('-', $parts);
+            return ucwords($name, '-');
         }
     }

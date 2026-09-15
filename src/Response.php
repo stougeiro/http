@@ -116,7 +116,7 @@
         public function withHeader(string $name, string $value): ResponseInterface
         {
             $key = $this->normalizeHeaderName($name);
-            $this->headers[$key] = (string) preg_replace('/[\r\n]/', '', $value);
+            $this->headers[$key] = str_replace(["\r", "\n"], '', $value);
 
             return $this;
         }

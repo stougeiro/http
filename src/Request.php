@@ -286,7 +286,7 @@
             $parts = explode(';', $raw);
 
             foreach ($parts as $part) {
-                $part = ltrim(rtrim($part));
+                $part = trim($part);
                 $pos = strpos($part, '=');
 
                 if ($pos === false) {
@@ -296,8 +296,9 @@
                 $name  = substr($part, 0, $pos);
                 $value = substr($part, $pos + 1);
 
-                $cookies[$name] = [
-                    'name'  => $this->secureString($name),
+                $safeName = $this->secureString($name);
+                $cookies[$safeName] = [
+                    'name'  => $safeName,
                     'value' => $this->secureString($value),
                 ];
             }
@@ -323,7 +324,7 @@
                 $json = json_decode($raw, true);
 
                 if (json_last_error() !== JSON_ERROR_NONE) {
-                    return ['__ERROR__' => json_last_error_msg()];
+                    return [];
                 }
 
                 return is_array($json) ? $this->secureArray($json) : [];
@@ -410,8 +411,12 @@
          * @param array<mixed> $data
          * @return array<int|string, mixed>
          */
-        protected function secureArray(array $data): array
+        protected function secureArray(array $data, int $depth = 0): array
         {
+            if ($depth > 12) {
+                return $data;
+            }
+
             $clean = [];
 
             foreach ($data as $key => $value) {
@@ -425,7 +430,7 @@
                 }
 
                 if (is_array($value)) {
-                    $clean[$safeKey] = $this->secureArray($value);
+                    $clean[$safeKey] = $this->secureArray($value, $depth + 1);
                     continue;
                 }
 
@@ -444,13 +449,7 @@
             $clean = trim($value);
 
             $clean = preg_replace(
-                '/[\x00-\x1F\x7F\x{200B}-\x{200D}\x{FEFF}]/u',
-                '',
-                $clean
-            ) ?? '';
-
-            $clean = preg_replace(
-                '/[\x{202A}-\x{202E}\x{2066}-\x{2069}]/u',
+                '/[\x00-\x1F\x7F\x{200B}-\x{200D}\x{FEFF}\x{202A}-\x{202E}\x{2066}-\x{2069}]/u',
                 '',
                 $clean
             ) ?? '';

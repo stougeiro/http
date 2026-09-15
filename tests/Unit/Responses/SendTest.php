@@ -231,11 +231,9 @@ describe('EmptyResponse Send', function () {
 });
 
 describe('FileResponse Send', function () {
-    it('sets status 404 when file does not exist', function () {
-        $response = new TestableFileResponse('/nonexistent/file.txt');
-        $response->send();
-
-        expect($response->sentStatus)->toBe([404]);
+    it('throws when file does not exist', function () {
+        expect(fn () => new TestableFileResponse('/nonexistent/file.txt'))
+            ->toThrow(InvalidArgumentException::class, 'file does not exist');
     });
 
     it('sets status 403 when file is not readable', function () {
@@ -278,10 +276,16 @@ describe('FileResponse Send', function () {
     });
 
     it('does not send body for non-200 status', function () {
-        $response = new TestableFileResponse('/nonexistent/file.txt');
+        $file = tempnam(sys_get_temp_dir(), 'test_');
+        file_put_contents($file, 'content');
+
+        $response = new TestableFileResponse($file);
+        $response->withStatus(404);
         $response->send();
 
         expect($response->sentBody)->toBe([]);
+
+        unlink($file);
     });
 
     it('sanitizes double quotes in filename for Content-Disposition', function () {

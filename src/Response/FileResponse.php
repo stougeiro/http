@@ -29,7 +29,13 @@
                 throw new InvalidArgumentException("Invalid file path: path traversal detected");
             }
 
-            $this->filePath = $filePath;
+            $real = realpath($filePath);
+
+            if ($real === false) {
+                throw new InvalidArgumentException("Invalid file path: file does not exist");
+            }
+
+            $this->filePath = $real;
 
             parent::__construct($status, $headers, $body);
         }

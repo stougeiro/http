@@ -33,7 +33,7 @@ it('handles invalid JSON', function () {
     $request = new TestJsonRequest('{invalid json');
     $body = $request->getBody();
 
-    expect($body)->toHaveKey('__ERROR__');
+    expect($body)->toBe([]);
 });
 
 it('returns empty array when JSON is not array', function () {

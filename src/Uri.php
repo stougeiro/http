@@ -66,6 +66,10 @@
         {
             $parts = parse_url($url);
 
+            if ($parts === false) {
+                $parts = [];
+            }
+
             $uri = new self;
             $uri->scheme = $parts['scheme'] ?? '';
             $uri->host = $parts['host'] ?? '';

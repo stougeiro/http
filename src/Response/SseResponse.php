@@ -160,31 +160,26 @@
          */
         protected function isValidEvent(string $event): bool
         {
-            $valid = preg_replace('/[\r\n]/', '', $event);
-
-            return $valid === $event;
+            return strpos($event, "\r") === false
+                && strpos($event, "\n") === false;
         }
 
         /**
-         * @param string $id 
-         * @return bool 
+         * @param string $id
+         * @return bool
          */
         protected function isValidId(string $id): bool
         {
-            $valid = preg_replace('/[^\x20-\x7E]/', '', $id);
-
-            return $valid === $id;
+            return preg_match('/[^\x20-\x7E]/', $id) === 0;
         }
 
         /**
-         * @param string $retry 
-         * @return bool 
+         * @param string $retry
+         * @return bool
          */
         protected function isValidRetry(string $retry): bool
         {
-            $valid = preg_replace('/[^0-9]/', '', $retry);
-
-            return $valid === $retry;
+            return $retry !== '' && ctype_digit($retry);
         }
 
         /** @return void
